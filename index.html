@@ -1,0 +1,940 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="豆豆回家记"></head><body>
+<title>Liam's 我会读</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@500;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.26.0/dist/index.js"></script>
+<style>
+/* Layout: a storybook adventure. Map screen = winding island trail down the page with the baby dragon 豆豆
+   waiting at the next island. Reading screen = sky scene strip with 豆豆 on top, the page text below with one
+   line in focus, and one big thumb button at the bottom. Single bright look on purpose (picture-book world). */
+:root{
+  color-scheme: light;
+  --sky:#DDF0FF; --sky2:#F4FAFF; --sea:#BFE6F7; --sea-deep:#8CCFEA;
+  --paper:#FFFFFF; --ink:#1D2B4F; --ink-soft:#5B6788; --line:#CFE0F2;
+  --leaf:#2F9E55; --leaf-dark:#1F7A3F; --leaf-tint:#DDF3E4;
+  --coral:#F2643D; --coral-dark:#B8421F; --coral-tint:#FFE4DA;
+  --sun:#FFC229; --sun-dark:#D99A00; --sun-tint:#FFF3CC;
+  --berry:#7B5CF0; --berry-dark:#4B33B8; --berry-tint:#ECE7FF;
+  --sand:#FFE7B0; --grass:#8FD18A; --grass-dark:#5DB45A;
+  --f-latin:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-cn-display:"ZCOOL KuaiLe","Baloo 2","PingFang SC","Microsoft YaHei",sans-serif;
+  --f-cn-read:"Kaiti SC","STKaiti","KaiTi","楷体","Noto Serif SC","Songti SC",serif;
+  /* dragon skin, swapped by the shop */
+  --d-body:#4CC38A; --d-dark:#2E9A68; --d-belly:#FFF1C9; --d-horn:#FFD27A;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(180deg,var(--sky) 0,var(--sky2) 420px,var(--sky2));color:var(--ink);font-family:var(--f-latin);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+.wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:14px 40px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip svg{width:20px;height:20px;flex:none}
+button.chip:hover{border-color:var(--berry)}
+.btn{border:0;border-radius:18px;padding:12px 22px;font-weight:800;font-size:19px;color:#fff;background:var(--leaf);box-shadow:0 5px 0 var(--leaf-dark);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--leaf-dark)}
+.btn.ghost{background:var(--paper);color:var(--ink);box-shadow:0 5px 0 var(--line);border:2px solid var(--line)}
+.btn.orange{background:var(--coral);box-shadow:0 5px 0 var(--coral-dark)}
+.btn.purple{background:var(--berry);box-shadow:0 5px 0 var(--berry-dark)}
+.btn.small{font-size:15px;padding:8px 14px;border-radius:14px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.small{font-size:13px;color:var(--ink-soft);margin:0}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ---------------- dragon ---------------- */
+.dragon{display:block;overflow:visible;width:100%;height:auto}
+.dragon .flame{opacity:0;transform-origin:52px 58px}
+@media (prefers-reduced-motion:no-preference){
+  .dragon .float{animation:float 3s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-4px)}}
+  .dragon .wingL{transform-origin:40px 70px;animation:flapL .5s ease-in-out infinite alternate}
+  .dragon .wingR{transform-origin:80px 70px;animation:flapR .5s ease-in-out infinite alternate}
+  @keyframes flapL{to{transform:rotate(-14deg)}}
+  @keyframes flapR{to{transform:rotate(14deg)}}
+  .dragon .eyes{transform-origin:60px 42px;animation:blink 4.5s infinite}
+  @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+  .dragon .tail{transform-origin:84px 92px;animation:wag 1.6s ease-in-out infinite alternate}
+  @keyframes wag{to{transform:rotate(10deg)}}
+  .dragon.chomp .mouthOpen{animation:chomp .35s ease-in-out 2}
+  @keyframes chomp{0%,100%{transform:scaleY(.15)}50%{transform:scaleY(1)}}
+  .dragon.happy .float{animation:hop .55s cubic-bezier(.3,1.6,.6,1) 2}
+  @keyframes hop{40%{transform:translateY(-16px) rotate(-4deg)}70%{transform:translateY(0) scale(1.05,.95)}}
+  .dragon.fire .flame{animation:flame 1s ease-out}
+  @keyframes flame{0%{opacity:0;transform:scale(.2)}20%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.3) translateY(-10px)}}
+  .dragon.think .float{animation:tilt 1s ease-in-out}
+  @keyframes tilt{30%,70%{transform:rotate(-8deg)}}
+}
+.dragon .mouthOpen{transform-origin:60px 57px;transform:scaleY(.15)}
+
+/* ---------------- map ---------------- */
+.maphead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.title{display:flex;align-items:center;gap:10px}
+.title h1{font-family:var(--f-cn-display);font-weight:400;font-size:clamp(30px,6vw,44px);margin:0;line-height:1;color:var(--berry)}
+.title .sub{font-size:14px;color:var(--ink-soft);font-weight:700}
+.wallet{display:flex;gap:8px;flex-wrap:wrap}
+.story{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:22px;padding:10px 16px 10px 8px}
+.story p{margin:0;font-size:15px;color:var(--ink-soft)}
+.story b{color:var(--ink);font-family:var(--f-cn-display);font-weight:400;font-size:20px;display:block}
+.journey{height:12px;background:var(--sky);border-radius:999px;overflow:hidden;margin-top:6px}
+.journey i{display:block;height:100%;background:linear-gradient(90deg,var(--sun),var(--coral));border-radius:999px}
+.trail{position:relative;margin-top:18px}
+.trail svg.path{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.isle{position:absolute;width:132px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;padding:0}
+.isle .land{position:relative;width:112px;height:76px;display:grid;place-items:center;font-size:36px;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;
+  background:radial-gradient(ellipse at 50% 35%,var(--grass) 0 55%,var(--grass-dark) 56% 62%,var(--sand) 63%);box-shadow:0 8px 0 var(--sea-deep)}
+.isle.done .land{box-shadow:0 8px 0 var(--sea-deep),0 0 0 4px var(--sun)}
+.isle.next .land{box-shadow:0 8px 0 var(--sea-deep),0 0 0 5px var(--berry)}
+@media (prefers-reduced-motion:no-preference){.isle.next .land{animation:pulse 1.6s ease-in-out infinite}@keyframes pulse{50%{transform:scale(1.07)}}}
+.isle .nm{font-family:var(--f-cn-display);font-size:17px;background:var(--paper);border-radius:999px;padding:0 10px;border:2px solid var(--line);white-space:nowrap}
+.isle .pt{font-size:12px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.isle .st{display:flex;gap:1px}
+.isle .st svg{width:16px;height:16px}
+.isle.home .land{background:radial-gradient(ellipse at 50% 35%,#D9CCFF 0 55%,#B6A2F5 56% 62%,var(--sand) 63%)}
+.mapdragon{position:absolute;width:86px;z-index:3;pointer-events:none;transition:left 1.4s cubic-bezier(.5,0,.3,1),top 1.4s cubic-bezier(.5,0,.3,1)}
+.mapdragon .bub{position:absolute;bottom:96%;left:50%;transform:translateX(-50%);background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:3px 10px;font-family:var(--f-cn-display);font-size:15px;white-space:nowrap;box-shadow:0 3px 0 var(--line)}
+.sea{background:radial-gradient(circle at 20% 30%,#ffffff55 0 3px,transparent 4px) 0 0/60px 60px, var(--sea);border-radius:28px;padding:20px 0 34px;margin-top:14px}
+.legend{margin-top:18px;background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:6px;max-width:68ch}
+.legend p{margin:0;color:var(--ink-soft);font-size:15px}
+
+/* ---------------- reading ---------------- */
+.topbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-block:6px}
+.topbar .grow{flex:1}
+.iconbtn{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:6px 12px;font-weight:800}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.on{border-color:var(--sun);background:var(--sun-tint)}
+.scene{position:relative;height:clamp(150px,24vw,190px);border-radius:24px;overflow:hidden;margin-top:6px;
+  background:linear-gradient(180deg,#9FD6FF 0,#CBEAFF 70%,var(--grass) 70.5%,var(--grass-dark) 100%)}
+.scene .cloud{position:absolute;background:#fff;border-radius:999px;opacity:.9}
+.scene .cloud::before,.scene .cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.scene .cloud::before{width:55%;height:160%;left:15%;top:-70%}
+.scene .cloud::after{width:40%;height:130%;left:48%;top:-45%}
+@media (prefers-reduced-motion:no-preference){.scene .cloud{animation:drift 40s linear infinite}@keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(110vw)}}}
+.scene .mark{position:absolute;left:16px;bottom:10px;font-size:clamp(40px,8vw,58px);line-height:1}
+.scene .placename{position:absolute;left:14px;top:10px;background:#ffffffcc;border-radius:12px;padding:2px 12px;font-family:var(--f-cn-display);font-size:18px}
+.scene .jar{position:absolute;right:16px;top:10px}
+.scene .dwrap{position:absolute;right:clamp(20px,8vw,70px);bottom:2px;width:clamp(110px,19vw,150px)}
+.scene .say{position:absolute;right:calc(clamp(20px,8vw,70px) + clamp(110px,19vw,150px) - 6px);bottom:56%;max-width:min(52%,330px);background:var(--paper);border-radius:18px 18px 4px 18px;padding:8px 14px;
+  font-family:var(--f-cn-display);font-size:clamp(17px,3vw,22px);line-height:1.25;box-shadow:0 4px 0 #0001}
+.say small{display:block;font-family:var(--f-latin);font-size:12px;color:var(--ink-soft);font-weight:700;line-height:1.3}
+@media (prefers-reduced-motion:no-preference){.say.pop{animation:sayin .35s cubic-bezier(.3,1.6,.6,1)}@keyframes sayin{from{transform:scale(.6);opacity:0}}}
+.prog{display:flex;gap:4px;margin:12px 2px 0}
+.prog i{flex:1;height:8px;border-radius:999px;background:var(--line)}
+.prog i.done{background:var(--leaf)}
+.prog i.cur{background:var(--berry)}
+.page{background:var(--paper);border:2px solid var(--line);border-radius:24px;padding:14px clamp(12px,3.5vw,32px) 20px;margin-top:10px}
+.page h2{font-family:var(--f-cn-display);font-weight:400;color:var(--coral);font-size:clamp(26px,5vw,36px);margin:0 0 6px;text-align:center}
+.lines{display:flex;flex-direction:column;gap:6px}
+.ln{display:flex;flex-wrap:wrap;gap:0 2px;border-radius:16px;padding:4px 6px;opacity:.38;transition:opacity .25s,background .25s}
+.ln.done{opacity:.75}
+.ln.now{opacity:1;background:var(--berry-tint);padding-block:8px}
+.ln.speak{opacity:1;background:var(--sun-tint)}
+.ln.gap{height:6px;padding:0;background:none}
+.g{display:inline-flex}
+.ch{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-end;border:0;background:none;padding:15px 0 2px;border-radius:10px;
+  width:clamp(30px,6.2vw,46px)}
+.ch .hz{font-family:var(--f-cn-read);font-size:clamp(24px,5vw,36px);line-height:1.15;font-weight:500;transition:color .2s,transform .2s}
+.ln.now .ch{width:clamp(38px,8.4vw,62px)}
+.ln.now .ch .hz{font-size:clamp(32px,7vw,50px)}
+.ch .py{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:clamp(11px,1.8vw,14px);font-weight:800;color:var(--coral);white-space:nowrap;opacity:0;transition:opacity .2s}
+.ch.punct{width:auto;min-width:clamp(12px,2.4vw,24px);pointer-events:none}
+.ch.punct .hz{color:var(--ink-soft)}
+.ch.ok .hz{color:var(--leaf)}
+.ch.fixed .hz{color:#B7791F}
+.ch.miss .hz{color:var(--coral)}
+.ch.miss .py,.ch.fixed .py,.ch.showpy .py{opacity:1}
+.ch.miss::after{content:"";position:absolute;inset:12px -1px -1px;border-radius:10px;border:2.5px dashed var(--coral);pointer-events:none}
+.ch.live .hz{color:var(--leaf);transform:scale(1.12)}
+.ch.flag .hz{color:var(--coral)}
+.ch.flag::after{content:"";position:absolute;inset:12px -1px -1px;border-radius:10px;border:2.5px solid var(--coral);pointer-events:none}
+.ch.saying{background:var(--sun-tint)}
+.self{margin-top:16px;display:inline-grid;gap:2px;background:var(--sun-tint);border-radius:14px;padding:8px 14px;font-family:var(--f-cn-display);font-size:17px}
+.self .b{display:inline-block;min-width:2em;text-align:center;background:#fff;border-radius:999px;padding:0 6px;margin:0 3px;font-family:var(--f-latin);font-weight:800;color:var(--leaf)}
+
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#ffffffee;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:2px solid var(--line);
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.dock-in{max-width:900px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.mic{border:0;border-radius:999px;flex:1 1 200px;max-width:440px;min-width:0;padding:14px 26px;font-size:clamp(20px,4vw,26px);font-weight:800;color:#fff;background:var(--berry);box-shadow:0 6px 0 var(--berry-dark);
+  display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.mic svg{width:30px;height:30px}
+.mic:active{transform:translateY(3px);box-shadow:0 3px 0 var(--berry-dark)}
+.mic.listening{background:var(--coral);box-shadow:0 6px 0 var(--coral-dark)}
+.mic.go{background:var(--leaf);box-shadow:0 6px 0 var(--leaf-dark)}
+.waves{display:inline-flex;gap:4px;align-items:center;height:26px}
+.waves i{width:5px;height:10px;border-radius:3px;background:#fff}
+@media (prefers-reduced-motion:no-preference){.waves i{animation:wave .8s ease-in-out infinite}.waves i:nth-child(2){animation-delay:.1s}.waves i:nth-child(3){animation-delay:.2s}.waves i:nth-child(4){animation-delay:.3s}@keyframes wave{50%{height:24px}}}
+.dock .aux{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:68px;padding:6px 8px;border-radius:16px;border:2px solid var(--line);background:var(--paper);font-size:12px;font-weight:800;color:var(--ink-soft)}
+.dock .aux svg{width:24px;height:24px;color:var(--ink)}
+.dock .tip{flex-basis:100%;text-align:center;font-size:13px;color:var(--ink-soft);font-weight:700;margin:0}
+.spacer{height:150px}
+@media (max-width:560px){
+  .dock-in{flex-wrap:nowrap;gap:8px}.dock .tip{display:none}.dock .aux{min-width:58px;font-size:11px}
+  .mic{padding:12px 14px}
+  .scene .say{left:10px;right:auto;top:8px;bottom:auto;max-width:60%}
+  .scene .placename{display:none}
+}
+
+.pearl{position:fixed;z-index:50;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#fff 0 18%,#FFE69A 30%,var(--sun) 60%,var(--sun-dark) 100%);box-shadow:0 0 12px #FFC22999}
+.plus{position:fixed;z-index:51;pointer-events:none;font-weight:800;font-size:22px;color:var(--sun-dark);text-shadow:0 2px 0 #fff}
+.burst{position:fixed;z-index:52;pointer-events:none;font-family:var(--f-cn-display);font-size:clamp(30px,7vw,48px);color:#fff;background:var(--berry);padding:8px 24px;border-radius:22px;box-shadow:0 6px 0 var(--berry-dark);left:50%;top:30%;transform:translateX(-50%);white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.burst{animation:burst 1.4s ease-out forwards}@keyframes burst{0%{transform:translateX(-50%) scale(.5);opacity:0}15%{transform:translateX(-50%) scale(1.1);opacity:1}80%{opacity:1}100%{transform:translateX(-50%) translateY(-30px);opacity:0}}}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+
+.overlay{position:fixed;inset:0;z-index:40;background:#1d2b4f73;display:grid;place-items:center;padding:16px}
+.sheet{background:var(--paper);border-radius:28px;padding:20px clamp(16px,4vw,30px);width:min(560px,100%);max-height:calc(100% - 16px);overflow:auto;text-align:center;display:grid;gap:12px}
+.sheet h3{font-family:var(--f-cn-display);font-weight:400;font-size:34px;margin:0;line-height:1.1}
+.bigstars{display:flex;justify-content:center;gap:8px}
+.bigstars svg{width:clamp(48px,13vw,68px);height:clamp(48px,13vw,68px)}
+@media (prefers-reduced-motion:no-preference){.bigstars svg.on{animation:starpop .5s backwards}.bigstars svg.on:nth-child(2){animation-delay:.25s}.bigstars svg.on:nth-child(3){animation-delay:.5s}@keyframes starpop{0%{transform:scale(0) rotate(-50deg)}70%{transform:scale(1.25)}}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--sky2);border:2px solid var(--line);border-radius:14px;padding:6px 4px}
+.stat b{display:block;font-size:24px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;font-weight:700;color:var(--ink-soft)}
+.storyline{background:var(--berry-tint);border-radius:16px;padding:10px 14px;font-family:var(--f-cn-display);font-size:20px}
+.missed{font-family:var(--f-cn-read);font-size:30px;color:var(--coral);letter-spacing:.12em;background:none;border:0;padding:0}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;text-align:center}
+.item{border:2px solid var(--line);border-radius:18px;padding:8px;display:grid;gap:4px;justify-items:center;background:var(--paper)}
+.item.worn{border-color:var(--leaf);background:var(--leaf-tint)}
+.item svg{width:84px;height:84px}
+.item .nm{font-family:var(--f-cn-display);font-size:18px}
+.opt{display:grid;gap:8px;text-align:left}
+.opt label{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:16px;padding:10px 12px;cursor:pointer}
+.opt input{margin-top:5px;accent-color:var(--berry);width:18px;height:18px}
+.opt b{display:block}
+.help{text-align:left;background:var(--sky2);border-radius:14px;padding:10px 14px;font-size:14px;color:var(--ink-soft)}
+.help b{color:var(--ink)}
+.help ol{margin:4px 0 0;padding-left:20px}
+.toast{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--ink);color:#fff;border-radius:14px;padding:10px 16px;font-weight:700;font-size:15px;max-width:calc(100% - 32px);text-align:center}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17l-5.7 3.1 1.2-6.4L2.8 9.3l6.4-.8z" stroke-linejoin="round" stroke-width="1.6"/></symbol>
+    <symbol id="i-pearl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#FFC229" stroke="#D99A00" stroke-width="2"/><circle cx="9" cy="8.5" r="3" fill="#fff" opacity=".85"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-ear" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 12h12M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5V4a1.5 1.5 0 0 1 3 0v7m0-5.5a1.5 1.5 0 0 1 3 0V13c0 4.5-2.5 8-6.5 8S5 18.5 4 15l-1-3a1.5 1.5 0 0 1 2.6-1.4L8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap" id="app"></div>
+<div id="layer"></div>
+
+<script>
+(() => {
+"use strict";
+/* ===================== PAGES ===================== */
+const BUILTIN = [
+  { id:"b11", book:"1B", lesson:11, page:10, title:"我有一个好朋友",
+    text:"我有一个好朋友，\n我们一起上学，一起回家。\n\n我走在左边，它走在右边，\n我走在右边，它走在左边。\n我走在前面，它走在后面，\n我走在后面，它走在前面。\n\n白天我们在一起，\n太阳下山它不见。",
+    py:"wǒ yǒu yí gè hǎo péng you wǒ men yì qǐ shàng xué yì qǐ huí jiā wǒ zǒu zài zuǒ biān tā zǒu zài yòu biān wǒ zǒu zài yòu biān tā zǒu zài zuǒ biān wǒ zǒu zài qián miàn tā zǒu zài hòu miàn wǒ zǒu zài hòu miàn tā zǒu zài qián miàn bái tiān wǒ men zài yì qǐ tài yáng xià shān tā bú jiàn",
+    riddle:"猜一猜：“它”是谁？", answer:"是影子！" },
+  { id:"b12", book:"1B", lesson:12, page:20, title:"妈妈我饿了",
+    text:"妈妈我饿了，今天我们吃什么？\n姐姐喜欢吃鸡饭，妹妹喜欢吃鸭面。\n妈妈点了汤，里面有肉也有蛋。\n爸爸点了菜，多吃青菜身体好。\n我们大家吃饱了，唱个歌儿回家去。",
+    py:"mā ma wǒ è le jīn tiān wǒ men chī shén me jiě jie xǐ huan chī jī fàn mèi mei xǐ huan chī yā miàn mā ma diǎn le tāng lǐ miàn yǒu ròu yě yǒu dàn bà ba diǎn le cài duō chī qīng cài shēn tǐ hǎo wǒ men dà jiā chī bǎo le chàng gè gē ér huí jiā qù" },
+  { id:"b13", book:"1B", lesson:13, page:30, title:"我变香了",
+    text:"我要变出一支小牙刷，\n用它把牙刷一刷。\n我要变出一条小毛巾，\n用它把脸抹一抹。\n我要变出很多小泡泡，\n用它把手洗一洗。\n变，变，变，\n我变香了！",
+    py:"wǒ yào biàn chū yì zhī xiǎo yá shuā yòng tā bǎ yá shuā yi shuā wǒ yào biàn chū yì tiáo xiǎo máo jīn yòng tā bǎ liǎn mǒ yi mǒ wǒ yào biàn chū hěn duō xiǎo pào pao yòng tā bǎ shǒu xǐ yi xǐ biàn biàn biàn wǒ biàn xiāng le" },
+  {"id": "b05", "book": "1A", "lesson": 5, "page": 56, "title": "我自己玩", "text": "我自己玩。\n木马和我玩，\n巴士和我玩，\n石子和我玩，\n山羊和我玩，\n鱼儿和我玩。\n一二三四五，\n五个玩具和我玩。", "py": "wǒ zì jǐ wán mù mǎ hé wǒ wán bā shì hé wǒ wán shí zǐ hé wǒ wán shān yáng hé wǒ wán yú ér hé wǒ wán yī èr sān sì wǔ wǔ gè wán jù hé wǒ wán"},
+  {"id": "b06", "book": "1A", "lesson": 6, "page": 68, "title": "早安 午安", "text": "大象大，\n小鸟小。\n大象在山上，\n小鸟也在山上。\n“早安，小鸟和大象。”\n\n河马大，\n小鱼小。\n小鱼在河里，\n河马也在河里。\n“午安，河马和小鱼。”", "py": "dà xiàng dà xiǎo niǎo xiǎo dà xiàng zài shān shàng xiǎo niǎo yě zài shān shàng zǎo ān xiǎo niǎo hé dà xiàng hé mǎ dà xiǎo yú xiǎo xiǎo yú zài hé lǐ hé mǎ yě zài hé lǐ wǔ ān hé mǎ hé xiǎo yú"},
+  {"id": "b07", "book": "1A", "lesson": 7, "page": 80, "title": "画画", "text": "我的画笔长长的。\n\n我画了山，\n我画了羊和马。\n山上羊多，\n山上马少。\n\n我画了田，\n我画了瓜和果。\n田里瓜多，\n田里果少。\n\n弟弟也来画画。\n他画了两片叶子和一朵花。", "py": "wǒ de huà bǐ cháng cháng de wǒ huà le shān wǒ huà le yáng hé mǎ shān shàng yáng duō shān shàng mǎ shǎo wǒ huà le tián wǒ huà le guā hé guǒ tián lǐ guā duō tián lǐ guǒ shǎo dì di yě lái huà huà tā huà le liǎng piàn yè zi hé yì duǒ huā"},
+  {"id": "b08", "book": "1A", "lesson": 8, "page": 92, "title": "你看见它们了吗", "text": "弟弟开开门，\n看见小鸟在飞，\n看见小马在跑，\n看见小羊在吃草。\n\n弟弟问：\n“小鸟，你看见小鱼了吗？”\n“小马，你看见大象了吗？”\n“小羊，你看见河马了吗？”\n\n你看见它们了吗？", "py": "dì di kāi kāi mén kàn jiàn xiǎo niǎo zài fēi kàn jiàn xiǎo mǎ zài pǎo kàn jiàn xiǎo yáng zài chī cǎo dì di wèn xiǎo niǎo nǐ kàn jiàn xiǎo yú le ma xiǎo mǎ nǐ kàn jiàn dà xiàng le ma xiǎo yáng nǐ kàn jiàn hé mǎ le ma nǐ kàn jiàn tā men le ma"},
+  {"id": "b09", "book": "1A", "lesson": 9, "page": 104, "title": "说华语", "text": "小弟弟，说华语。\n我说“井”，他说“今”。\n我说“支”，他说“吃”。\n我说“文”，他说“问”。\n我说“里”，他说“粒”。\n我说“牛”，他说“六”。\n我说“多”，他说“豆”。\n奶奶见了开口笑。", "py": "xiǎo dì di shuō huá yǔ wǒ shuō jǐng tā shuō jīn wǒ shuō zhī tā shuō chī wǒ shuō wén tā shuō wèn wǒ shuō lǐ tā shuō lì wǒ shuō niú tā shuō liù wǒ shuō duō tā shuō dòu nǎi nai jiàn le kāi kǒu xiào"},
+  {"id": "b10", "book": "1A", "lesson": 10, "page": 115, "title": "风儿来了", "text": "风儿来了，\n云朵也来了。\n\n云朵来了，\n雷电也来了。\n\n雷电来了，\n大雨也来了。\n\n大雨来了，\n河水也来了。\n\n河水来了，\n鱼儿也来了。\n\n鱼儿来了，\n弟弟也来了。", "py": "fēng ér lái le yún duǒ yě lái le yún duǒ lái le léi diàn yě lái le léi diàn lái le dà yǔ yě lái le dà yǔ lái le hé shuǐ yě lái le hé shuǐ lái le yú ér yě lái le yú ér lái le dì di yě lái le"},
+  {"id": "b14", "book": "1B", "lesson": 14, "page": 40, "title": "毛毛虫穿鞋子", "text": "毛毛虫要和朋友一起出去玩。\n出门前，毛毛虫要穿一件衣服，还要穿好多双袜子，好多双鞋子。\n朋友说：“你动作快一点儿。”\n毛毛虫笑了笑，说：“我快穿好了，还有两双袜子、两双皮鞋。”", "py": "máo máo chóng yào hé péng you yì qǐ chū qù wán chū mén qián máo máo chóng yào chuān yí jiàn yī fu hái yào chuān hǎo duō shuāng wà zi hǎo duō shuāng xié zi péng you shuō nǐ dòng zuò kuài yì diǎn ér máo máo chóng xiào le xiào shuō wǒ kuài chuān hǎo le hái yǒu liǎng shuāng wà zi liǎng shuāng pí xié"},
+  {"id": "b16", "book": "1B", "lesson": 16, "page": 60, "title": "妹妹会写好多字", "text": "扫完地，我和妹妹坐下写字。\n\n我说上边“户”下边“方”，她写“房”。\n我说上边“口”下边“儿”，她写“兄”。\n我说左边“口”右边“斤”，她写“听”。\n我说左边“身”右边“朵”，她写“躲”。\n我说左边“手”右边“丁”，她写“打”。\n\n妹妹会写好多字！", "py": "sǎo wán dì wǒ hé mèi mei zuò xià xiě zì wǒ shuō shàng biān hù xià biān fāng tā xiě fáng wǒ shuō shàng biān kǒu xià biān ér tā xiě xiōng wǒ shuō zuǒ biān kǒu yòu biān jīn tā xiě tīng wǒ shuō zuǒ biān shēn yòu biān duǒ tā xiě duǒ wǒ shuō zuǒ biān shǒu yòu biān dīng tā xiě dǎ mèi mei huì xiě hǎo duō zì"},
+  {"id": "b17", "book": "1B", "lesson": 17, "page": 70, "title": "奶奶，生日快乐", "text": "我有一个好奶奶。\n每天放学回家，奶奶都会给我讲故事。每个节日，奶奶都会给我们做好吃的。\n明天是奶奶的生日。明天晚上，我们一家人会一起为她庆祝。\n我爱奶奶！\n奶奶，生日快乐！", "py": "wǒ yǒu yí gè hǎo nǎi nai měi tiān fàng xué huí jiā nǎi nai dōu huì gěi wǒ jiǎng gù shì měi gè jié rì nǎi nai dōu huì gěi wǒ men zuò hǎo chī de míng tiān shì nǎi nai de shēng rì míng tiān wǎn shàng wǒ men yì jiā rén huì yì qǐ wèi tā qìng zhù wǒ ài nǎi nai nǎi nai shēng rì kuài lè"},
+  {"id": "b18", "book": "1B", "lesson": 18, "page": 80, "title": "它是谁", "text": "动物们在花园里玩。\n小象来了，说：“我带了一个朋友来，它马上到。”\n狮子问：“它是谁？”\n小象说：“它的爪子尖尖的，尾巴长长的，眼睛大大的，头上有个黑色的字，叫起来……”\n小象话还没说完，兔子站起来说：“是老虎！”", "py": "dòng wù men zài huā yuán lǐ wán xiǎo xiàng lái le shuō wǒ dài le yí gè péng you lái tā mǎ shàng dào shī zi wèn tā shì shéi xiǎo xiàng shuō tā de zhuǎ zi jiān jiān de wěi ba cháng cháng de yǎn jing dà dà de tóu shàng yǒu gè hēi sè de zì jiào qǐ lái xiǎo xiàng huà hái méi shuō wán tù zi zhàn qǐ lái shuō shì lǎo hǔ"},
+  {"id": "b19", "book": "1B", "lesson": 19, "page": 90, "title": "它们是什么", "text": "你有，我没有。\n他有，她没有。\n伙伴有，朋友没有。\n\n抱有，跑没有。\n拍有，球没有。\n扶手有，梯子没有。\n\n常有，长没有。\n商店有，组屋没有。\n唱歌有，游戏没有。", "py": "nǐ yǒu wǒ méi yǒu tā yǒu tā méi yǒu huǒ bàn yǒu péng you méi yǒu bào yǒu pǎo méi yǒu pāi yǒu qiú méi yǒu fú shǒu yǒu tī zi méi yǒu cháng yǒu cháng méi yǒu shāng diàn yǒu zǔ wū méi yǒu chàng gē yǒu yóu xì méi yǒu", "riddle": "猜一猜：它们是什么？", "answer": "是“亻”、“扌”和“口”！"}
+];
+// Island for each page: the dragon's journey home, in textbook order.
+const ISLES = {
+  b05:{name:"玩具岛",mark:"🧸"}, b06:{name:"大象山",mark:"🐘"}, b07:{name:"画画谷",mark:"🎨"},
+  b08:{name:"小马草原",mark:"🐴"}, b09:{name:"华语村",mark:"🏮"}, b10:{name:"下雨湖",mark:"🌧️"},
+  b11:{name:"影子林",mark:"🌳"}, b12:{name:"美食街",mark:"🍜"}, b13:{name:"泡泡湾",mark:"🧼"},
+  b14:{name:"毛毛虫洞",mark:"🐛"}, b16:{name:"写字桥",mark:"✏️"}, b17:{name:"蛋糕岛",mark:"🎂"},
+  b18:{name:"动物园",mark:"🐯"}, b19:{name:"月亮山",mark:"🏡", home:true}
+};
+const ORDER = BUILTIN.slice().sort((a,b)=>a.lesson-b.lesson).map(p=>p.id);
+const PAGE = Object.fromEntries(BUILTIN.map(p=>[p.id,p]));
+const CN_NUM = ["","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十"];
+const isHan = c => /[\u3400-\u9fff]/.test(c);
+
+/* ===================== SHOP ===================== */
+const ITEMS = [
+  {id:"scarf",  slot:"neck", name:"红围巾",   price:40},
+  {id:"bow",    slot:"neck", name:"蝴蝶结",   price:50},
+  {id:"hat",    slot:"head", name:"派对帽",   price:60},
+  {id:"glasses",slot:"eyes", name:"酷墨镜",   price:80},
+  {id:"blue",   slot:"skin", name:"蓝色豆豆", price:100, skin:["#5BA8F5","#3A7BCC","#E9F4FF","#FFD27A"]},
+  {id:"pink",   slot:"skin", name:"粉色豆豆", price:100, skin:["#F58BB8","#CF5E8F","#FFEFF5","#FFE08A"]},
+  {id:"crown",  slot:"head", name:"小皇冠",   price:150},
+  {id:"gold",   slot:"skin", name:"金色豆豆", price:220, skin:["#F7C548","#C99419","#FFF7DC","#FF8A5B"]},
+];
+
+/* ===================== STATE ===================== */
+const KEY = "liam-wohuidu-v2";
+function fresh(){ return { coins:0, progress:{}, owned:[], wear:{}, mode:null, seenIsle:null }; }
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)||"null"); if(s && typeof s==="object") return Object.assign(fresh(), s); }catch(e){}
+  const s = fresh();
+  try{ const old = JSON.parse(localStorage.getItem("liam-wohuidu-v1")||"null"); if(old){ s.coins = old.coins||0; for(const [k,v] of Object.entries(old.progress||{})) if(PAGE[k]) s.progress[k]={stars:v.stars||0,bestTime:v.bestTime,bestCorrect:v.bestCorrect,plays:v.plays||0}; } }catch(e){}
+  return s;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let S = load();
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let EMBEDDED = false; try{ EMBEDDED = window.self !== window.top; }catch(e){ EMBEDDED = true; }
+// Inside Claude the page runs in a frame without microphone access, so a grown-up checks by default.
+if(!S.mode) S.mode = (SR && !EMBEDDED) ? "voice" : "tap";
+if(S.mode==="voice" && !SR) S.mode = "tap";
+
+/* ===================== HELPERS ===================== */
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const icon = id => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
+const fmtTime = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function starsSVG(n){ let h=""; for(let i=0;i<3;i++) h+=`<svg viewBox="0 0 24 24" class="${i<n?'on':''}" aria-hidden="true"><use href="#i-star" fill="${i<n?'#FFC229':'#E3ECF6'}" stroke="${i<n?'#D99A00':'#CFE0F2'}"/></svg>`; return h; }
+function toast(msg, ms=3200){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), ms); }
+const nextIsle = () => ORDER.find(id=>!(S.progress[id]&&S.progress[id].stars)) || null;
+const doneCount = () => ORDER.filter(id=>S.progress[id]&&S.progress[id].stars).length;
+
+/* ===================== SOUND EFFECTS ===================== */
+let actx=null;
+function tone(freqs, dur=.09, type="triangle", vol=.12){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended") actx.resume();
+    let t=actx.currentTime;
+    freqs.forEach(f=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type=type; o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur); o.connect(g).connect(actx.destination); o.start(t); o.stop(t+dur+.02); t+=dur*.8; });
+  }catch(e){}
+}
+const sfx = { pop:()=>tone([1320],.06,"sine",.08), chomp:()=>tone([220,180],.07,"square",.05), good:()=>tone([660,880,1100],.09),
+  oops:()=>tone([330,262],.12,"sine",.09), fire:()=>tone([440,554,659,880,1108],.08), win:()=>tone([523,659,784,1046,1318,1568],.13), buy:()=>tone([880,1320,1760],.08) };
+
+/* ===================== SPEECH OUT (TTS) ===================== */
+const TTS = { voice:null, keep:[], everStarted:false, warned:false };
+function pickVoice(){
+  try{
+    const vs = speechSynthesis.getVoices()||[];
+    TTS.voice = vs.find(v=>/^zh[-_]CN/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang) && !/HK|yue|TW/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang)) || null;
+    TTS.count = vs.length;
+  }catch(e){}
+}
+if(window.speechSynthesis){ pickVoice(); try{ speechSynthesis.addEventListener("voiceschanged", pickVoice); }catch(e){} }
+function say(text, {rate=.8, onstart, onend}={}){
+  if(!window.speechSynthesis){ onend&&onend(); return; }
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN"; if(TTS.voice) u.voice = TTS.voice; u.rate = rate; u.pitch = 1.05;
+    TTS.keep.push(u); // keep a reference, iOS drops events for collected utterances
+    let ended=false;
+    u.onstart = ()=>{ TTS.everStarted=true; onstart&&onstart(); };
+    u.onend = u.onerror = ()=>{ if(ended) return; ended=true; TTS.keep = TTS.keep.filter(x=>x!==u); onend&&onend(); };
+    try{ speechSynthesis.resume(); }catch(e){}
+    speechSynthesis.speak(u);
+  }catch(e){ onend&&onend(); }
+}
+function hush(){ try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} TTS.keep=[]; }
+function watchVoice(){
+  // If nothing has started speaking 3s after a request, the device probably lacks a Chinese voice.
+  setTimeout(()=>{ if(!TTS.everStarted && !TTS.warned){ TTS.warned=true; toast("No sound? Turn off the iPad's silent mode and turn the volume up. Still quiet? Open ⚙ for help.", 6000); } }, 3000);
+}
+const CONTEXT_CHARS = new Set([..."了长还都和一好乐为少地得着们么吗子儿的个"]);
+function sayChar(lineChars, idx){
+  // Some characters change sound by word; say them with a neighbour so the voice picks the right reading.
+  const ch = lineChars[idx]; let text = ch.c;
+  if(CONTEXT_CHARS.has(ch.c)){
+    const prev = lineChars[idx-1], next = lineChars[idx+1];
+    if(prev && prev.han) text = prev.c + ch.c; else if(next && next.han) text = ch.c + next.c;
+  }
+  say(text, {rate:.7}); watchVoice();
+}
+
+/* ===================== PINYIN MATCHING ===================== */
+const PP = window.pinyinPro || null;
+function norm(p){
+  p = String(p||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/ü|v/g,"u").replace(/[^a-z]/g,"");
+  p = p.replace(/^zh/,"z").replace(/^ch/,"c").replace(/^sh/,"s").replace(/ing$/,"in").replace(/eng$/,"en");
+  return p;
+}
+const charPyCache = new Map();
+function readingsOf(c){
+  if(charPyCache.has(c)) return charPyCache.get(c);
+  let set = new Set();
+  if(PP){ try{ PP.pinyin(c,{toneType:"none",type:"array",multiple:true}).forEach(p=>set.add(norm(p))); }catch(e){} }
+  charPyCache.set(c,set); return set;
+}
+const DIG = {"0":"零","1":"一","2":"二","3":"三","4":"四","5":"五","6":"六","7":"七","8":"八","9":"九"};
+function heardChars(text){
+  const arr = [...String(text).replace(/[0-9]/g,d=>DIG[d])].filter(isHan);
+  let ctx = [];
+  if(PP && arr.length){ try{ ctx = PP.pinyin(arr.join(""),{toneType:"none",type:"array"}).map(norm); }catch(e){} }
+  return arr.map((c,i)=>{ const s = new Set(readingsOf(c)); if(ctx[i]) s.add(ctx[i]); return {c, py:s}; });
+}
+function same(t, h){
+  if(t.c===h.c) return true;
+  for(const p of t.pys) if(h.py.has(p)) return true;
+  return false;
+}
+// Longest common subsequence between the line and what was heard. Returns matched line indices.
+function align(lineHan, heard){
+  const n=lineHan.length, m=heard.length; if(!n||!m) return [];
+  const dp = Array.from({length:n+1},()=>new Int16Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--)
+    dp[i][j] = same(lineHan[i],heard[j]) ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const out=[]; let i=0,j=0;
+  while(i<n&&j<m){ if(same(lineHan[i],heard[j])){ out.push(i); i++; j++; } else if(dp[i+1][j]>=dp[i][j+1]) i++; else j++; }
+  return out;
+}
+
+/* ===================== DRAGON ===================== */
+function skinOf(){ const it = ITEMS.find(x=>x.id===S.wear.skin); return it ? it.skin : ["#4CC38A","#2E9A68","#FFF1C9","#FFD27A"]; }
+function dragonSVG(extra=""){
+  const [b,d,belly,horn] = skinOf(); const w = S.wear;
+  const hat = w.head==="hat" ? `<g><path d="M48 22 L60 -6 L72 22 Z" fill="#7B5CF0" stroke="#4B33B8" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="-7" r="4.5" fill="#FFC229"/><path d="M52 15 L68 15 M55 8 L65 8" stroke="#FFC229" stroke-width="2.5"/></g>` : "";
+  const crown = w.head==="crown" ? `<g><path d="M44 22 L46 6 L53 14 L60 2 L67 14 L74 6 L76 22 Z" fill="#FFC229" stroke="#D99A00" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="13" r="2.8" fill="#F2643D"/><circle cx="50" cy="17" r="2" fill="#5BA8F5"/><circle cx="70" cy="17" r="2" fill="#5BA8F5"/></g>` : "";
+  const scarf = w.neck==="scarf" ? `<g><path d="M38 64 Q60 74 82 64 L82 70 Q60 80 38 70 Z" fill="#F2643D" stroke="#B8421F" stroke-width="1.5"/><path d="M70 72 L76 92 L66 90 Z" fill="#F2643D" stroke="#B8421F" stroke-width="1.5"/></g>` : "";
+  const bow = w.neck==="bow" ? `<g><path d="M60 68 L46 60 L46 76 Z M60 68 L74 60 L74 76 Z" fill="#F58BB8" stroke="#CF5E8F" stroke-width="1.8" stroke-linejoin="round"/><circle cx="60" cy="68" r="4" fill="#CF5E8F"/></g>` : "";
+  const glasses = w.eyes==="glasses" ? `<g><rect x="39" y="35" width="18" height="12" rx="5" fill="#1D2B4F"/><rect x="63" y="35" width="18" height="12" rx="5" fill="#1D2B4F"/><path d="M57 40 L63 40" stroke="#1D2B4F" stroke-width="2.5"/><path d="M43 38 L48 38" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/></g>` : "";
+  return `<svg class="dragon ${extra}" viewBox="0 -12 120 132" aria-label="豆豆 the little dragon" role="img">
+  <g class="float">
+    <path class="tail" d="M84 92 Q108 96 106 76 Q104 66 112 62 Q102 60 98 70 Q96 86 82 84 Z" fill="${b}" stroke="${d}" stroke-width="2.5" stroke-linejoin="round"/>
+    <path class="wingL" d="M40 70 Q18 54 14 66 Q22 68 20 76 Q30 72 36 80 Z" fill="${d}" stroke="${d}" stroke-width="2" stroke-linejoin="round"/>
+    <path class="wingR" d="M80 70 Q102 54 106 66 Q98 68 100 76 Q90 72 84 80 Z" fill="${d}" stroke="${d}" stroke-width="2" stroke-linejoin="round"/>
+    <ellipse cx="60" cy="86" rx="28" ry="26" fill="${b}" stroke="${d}" stroke-width="2.5"/>
+    <ellipse cx="60" cy="91" rx="17" ry="17" fill="${belly}"/>
+    <path d="M50 84 Q60 87 70 84 M49 92 Q60 95 71 92 M51 100 Q60 103 69 100" stroke="${d}" stroke-width="1.4" fill="none" opacity=".35"/>
+    <ellipse cx="46" cy="111" rx="9" ry="6" fill="${b}" stroke="${d}" stroke-width="2.5"/>
+    <ellipse cx="74" cy="111" rx="9" ry="6" fill="${b}" stroke="${d}" stroke-width="2.5"/>
+    <path d="M52 24 L48 8 L58 20 Z" fill="${horn}" stroke="${d}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M68 24 L72 8 L62 20 Z" fill="${horn}" stroke="${d}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="60" cy="44" r="27" fill="${b}" stroke="${d}" stroke-width="2.5"/>
+    <path d="M86 36 L95 32 L90 42 L98 44 L88 50" fill="${b}" stroke="${d}" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="42" cy="53" r="5" fill="#FF8FA3" opacity=".55"/><circle cx="78" cy="53" r="5" fill="#FF8FA3" opacity=".55"/>
+    <g class="eyes">
+      <ellipse cx="48" cy="41" rx="7" ry="8.5" fill="#fff"/><ellipse cx="72" cy="41" rx="7" ry="8.5" fill="#fff"/>
+      <circle cx="49.5" cy="43" r="4.6" fill="#1D2B4F"/><circle cx="70.5" cy="43" r="4.6" fill="#1D2B4F"/>
+      <circle cx="51" cy="41" r="1.7" fill="#fff"/><circle cx="72" cy="41" r="1.7" fill="#fff"/>
+    </g>
+    <circle cx="56" cy="51" r="1.3" fill="${d}"/><circle cx="64" cy="51" r="1.3" fill="${d}"/>
+    <path class="smile" d="M52 56 Q60 63 68 56" fill="none" stroke="#1D2B4F" stroke-width="2.4" stroke-linecap="round"/>
+    <ellipse class="mouthOpen mouth" cx="60" cy="59" rx="8" ry="7" fill="#7A2E3B"/>
+    <g class="flame"><path d="M53 58 Q34 44 4 50 Q18 55 2 60 Q20 63 6 70 Q34 70 53 61 Z" fill="#FF7A3D"/><path d="M53 58 Q38 51 18 54 Q28 57 16 62 Q36 64 53 60 Z" fill="#FFD84D"/></g>
+    ${scarf}${bow}${glasses}${hat}${crown}
+  </g></svg>`;
+}
+function animDragon(cls, ms=900){
+  const d = $("#scene .dragon"); if(!d) return;
+  d.classList.remove(cls); void d.getBoundingClientRect(); d.classList.add(cls);
+  clearTimeout(d["_t"+cls]); d["_t"+cls] = setTimeout(()=>d.classList.remove(cls), ms);
+}
+function dragonSays(zh, en){
+  const b = $("#say"); if(!b) return;
+  b.innerHTML = `${esc(zh)}${en?`<small>${esc(en)}</small>`:""}`;
+  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+}
+
+/* ===================== MAP ===================== */
+function renderMap(){
+  $$(".confetti,.pearl,.plus,.burst").forEach(x=>x.remove());
+  stopAll(); clearInterval(timer); $("#layer").innerHTML="";
+  const next = nextIsle(); const done = doneCount();
+  const totalStars = Object.values(S.progress).reduce((n,p)=>n+(p.stars||0),0);
+  const storyText = !next ? ["豆豆回到家了！","Doudou is home! Liam read every page. Read them again to win more stars and pearls."]
+    : done===0 ? ["小龙豆豆找不到家了。","Doudou the little dragon is lost. Each character Liam reads becomes a magic pearl. Pearls give Doudou the power to fly from island to island, all the way home to 月亮山."]
+    : [`还有 ${ORDER.length-done} 个岛就到家了！`,`Doudou is waiting at ${ISLES[next].name}. Read that page to fly on.`];
+  $("#app").innerHTML = `
+    <header class="maphead">
+      <div class="title"><div><h1>豆豆回家记</h1><div class="sub">Liam's 我会读 adventure · 欢乐伙伴 1A & 1B</div></div></div>
+      <div class="wallet">
+        <span class="chip" title="Pearls">${icon("i-pearl")}<span>${S.coins}</span></span>
+        <span class="chip" title="Stars"><svg viewBox="0 0 24 24"><use href="#i-star" fill="#FFC229" stroke="#D99A00"/></svg><span>${totalStars}</span></span>
+        <button class="chip" id="shopBtn">🛍️ 龙龙商店</button>
+        <button class="chip" id="setBtn" aria-label="Settings">${icon("i-gear")}</button>
+      </div>
+    </header>
+    <section class="story">
+      <div style="width:78px">${dragonSVG()}</div>
+      <div><b>${esc(storyText[0])}</b><p>${esc(storyText[1])}</p>
+        <div class="journey" aria-label="${done} of ${ORDER.length} islands"><i style="width:${100*done/ORDER.length}%"></i></div></div>
+    </section>
+    <div class="sea"><div class="trail" id="trail"></div></div>
+    <div class="legend">
+      <p><b>How to play.</b> Tap an island and read the purple line out loud. ${S.mode==="voice" ? "Tap 🎤 first, and every character the iPad hears correctly turns into a pearl for 豆豆." : "A grown-up taps any character Liam missed, then taps ✓. Every character he read right turns into a pearl for 豆豆."}</p>
+      <p>Orange characters need another try. Tap one to hear it. Read a whole line right on the first try to make 豆豆 breathe fire!</p>
+      <p>Spend pearls in the 龙龙商店 on hats, scarves and new colours for 豆豆.</p>
+    </div>`;
+  $("#shopBtn").onclick = openShop;
+  $("#setBtn").onclick = openSettings;
+  layoutTrail(next);
+}
+let trailResize=null;
+function layoutTrail(next){
+  const trail = $("#trail"); if(!trail) return;
+  const W = trail.clientWidth, stepY = 150, xs = [.5,.78,.5,.22];
+  const pts = ORDER.map((id,i)=>({id, x:Math.round(W*xs[i%4]), y:40+i*stepY}));
+  trail.style.height = (pts[pts.length-1].y + 120)+"px";
+  let d = `M${pts[0].x} ${pts[0].y+38}`;
+  for(let i=1;i<pts.length;i++){ const a=pts[i-1], b=pts[i]; d += ` C${a.x} ${a.y+38+stepY*.55}, ${b.x} ${b.y+38-stepY*.55}, ${b.x} ${b.y+38}`; }
+  let html = `<svg class="path" width="${W}" height="${pts[pts.length-1].y+120}"><path d="${d}" fill="none" stroke="#fff" stroke-width="7" stroke-dasharray="2 16" stroke-linecap="round" opacity=".95"/></svg>`;
+  pts.forEach(p=>{
+    const pg = PAGE[p.id], is = ISLES[p.id], pr = S.progress[p.id]||{};
+    const cls = ["isle", pr.stars?"done":"", p.id===next?"next":"", is.home?"home":""].join(" ");
+    html += `<button class="${cls}" style="left:${p.x}px;top:${p.y}px" data-open="${p.id}" aria-label="${esc(is.name)} ${esc(pg.title)}">
+      <span class="land">${is.mark}</span>
+      <span class="nm">${esc(is.name)}</span>
+      <span class="pt">${esc(pg.book)} 第${CN_NUM[pg.lesson]}课 · ${esc(pg.title)}</span>
+      <span class="st">${starsSVG(pr.stars||0)}</span>
+    </button>`;
+  });
+  const target = next || ORDER[ORDER.length-1];
+  const tp = pts.find(p=>p.id===target);
+  const from = (S.seenIsle && pts.find(p=>p.id===S.seenIsle)) || tp;
+  const dx = q => q.x > W/2 ? q.x-118 : q.x+30;
+  html += `<div class="mapdragon" id="mapdragon" style="left:${dx(from)}px;top:${from.y-52}px">${dragonSVG()}<span class="bub">${next?"读这一页，带我飞过去！":"我到家了！"}</span></div>`;
+  trail.innerHTML = html;
+  trail.onclick = e => { const b = e.target.closest("[data-open]"); if(b) openPage(b.dataset.open); };
+  if(from!==tp){ requestAnimationFrame(()=>requestAnimationFrame(()=>{ const md=$("#mapdragon"); if(md){ md.style.left=dx(tp)+"px"; md.style.top=(tp.y-52)+"px"; } })); setTimeout(()=>{ const el=$(`.isle[data-open="${target}"]`); el && el.scrollIntoView({block:"center",behavior:REDUCED?"auto":"smooth"}); }, 300); }
+  else if(next && next!==ORDER[0]) setTimeout(()=>{ const el=$(`.isle[data-open="${target}"]`); el && el.scrollIntoView({block:"center",behavior:"auto"}); }, 50);
+  S.seenIsle = target; save();
+  clearTimeout(trailResize);
+  window.onresize = ()=>{ clearTimeout(trailResize); trailResize=setTimeout(()=>{ if($("#trail")) layoutTrail(nextIsle()); },150); };
+}
+
+/* ===================== READING ===================== */
+let R=null, timer=null;
+function buildLines(p){
+  const pys = (p.py||"").trim().split(/\s+/); let k=0;
+  return p.text.split("\n").map(line=>{
+    if(!line.trim()) return null;
+    const chars = [...line.trim()].map(c=>{ const han=isHan(c); const py = han?(pys[k++]||""):""; return {c, han, py, state:"todo"}; });
+    chars.forEach(ch=>{ if(ch.han){ ch.pys = new Set([norm(ch.py), ...readingsOf(ch.c)]); ch.pys.delete(""); } });
+    return chars;
+  });
+}
+function openPage(id){
+  stopAll();
+  const p = PAGE[id]; if(!p) return;
+  R = { p, lines:buildLines(p), li:-1, secs:0, coins:0, streak:0, best:0, attempts:0, phase:"ready", started:false, listening:false };
+  R.li = R.lines.findIndex(l=>l);
+  renderRead();
+  const first = REDUCED ? 0 : 400;
+  setTimeout(()=>dragonSays("我们一起读吧！", S.mode==="voice" ? "Tap 🎤 and read the purple line out loud." : "Liam reads the purple line. A grown-up taps any word he missed, then taps ✓."), first);
+}
+function groupLine(l){ const gs=[]; let pre=[]; l.forEach(ch=>{ if(!ch.han && /[“‘《（(]/.test(ch.c)){ pre.push(ch); return; } if(!ch.han && gs.length && !pre.length) gs[gs.length-1].push(ch); else { gs.push([...pre,ch]); pre=[]; } }); if(pre.length) gs.push(pre); return gs; }
+function renderRead(){
+  const {p} = R, is = ISLES[p.id];
+  const realLines = R.lines.map((l,i)=>l?i:-1).filter(i=>i>=0);
+  $("#app").innerHTML = `
+    <div class="topbar">
+      <button class="iconbtn" id="backBtn">${icon("i-back")}地图</button>
+      <span class="grow"></span>
+      <button class="iconbtn" id="hearAll">${icon("i-ear")}<span>先听一听</span></button>
+      <span class="chip" title="Time">⏱ <span id="tm">${fmtTime(R.secs)}</span></span>
+      <span class="chip" title="Pearls this page">${icon("i-pearl")}<span id="rc">${R.coins}</span></span>
+    </div>
+    <div class="scene" id="scene">
+      <span class="cloud" style="width:90px;height:26px;top:28px;animation-delay:-8s"></span>
+      <span class="cloud" style="width:60px;height:18px;top:62px;animation-delay:-27s;animation-duration:55s"></span>
+      <span class="placename">${is.mark} ${esc(is.name)}</span>
+      <span class="mark" aria-hidden="true">${is.mark}</span>
+      <div class="say" id="say" aria-live="polite"></div>
+      <div class="dwrap" id="dwrap">${dragonSVG()}</div>
+    </div>
+    <div class="prog" id="prog">${realLines.map(i=>`<i data-l="${i}"></i>`).join("")}</div>
+    <article class="page">
+      <h2>${esc(p.title)}</h2>
+      <div class="lines" id="lines">
+        ${R.lines.map((l,li)=> !l ? `<div class="ln gap"></div>` : `<div class="ln" data-l="${li}">${groupLine(l).map(g=>`<span class="g">${g.map(ch=>{
+            const idx = l.indexOf(ch);
+            return ch.han ? `<button class="ch" data-l="${li}" data-i="${idx}"><span class="py">${esc(ch.py)}</span><span class="hz">${esc(ch.c)}</span></button>`
+                          : `<span class="ch punct"><span class="hz">${esc(ch.c)}</span></span>`; }).join("")}</span>`).join("")}</div>`).join("")}
+      </div>
+      <div class="self" aria-label="Textbook self check"><div>我用<span class="b" id="bm">__</span>分<span class="b" id="bs">__</span>秒读完。</div><div>我读对了<span class="b" id="bn">__</span>个字。</div></div>
+    </article>
+    <div class="spacer"></div>`;
+  $("#layer").innerHTML = `<div class="dock" id="dock"><div class="dock-in" id="dockIn"></div></div>`;
+  $("#backBtn").onclick = renderMap;
+  $("#hearAll").onclick = hearAll;
+  $("#lines").onclick = onCharTap;
+  paint(); renderDock();
+}
+const curLine = () => R.lines[R.li];
+function paint(){
+  R.lines.forEach((l,li)=>{
+    if(!l) return;
+    const row = $(`.ln[data-l="${li}"]`); if(!row) return;
+    const allDone = l.every(c=>!c.han || c.state==="ok" || c.state==="fixed" || c.state==="skip");
+    row.className = "ln" + (li===R.li && R.phase!=="end" ? " now" : allDone && l.some(c=>c.state!=="todo") ? " done" : "");
+    l.forEach((ch,i)=>{ if(!ch.han) return; const el = row.querySelector(`.ch[data-i="${i}"]`); if(!el) return;
+      el.className = "ch " + (ch.state==="ok"?"ok":ch.state==="fixed"?"fixed":ch.state==="miss"||ch.state==="skip"?"miss":"") + (ch.flag?" flag":"") + (ch.live?" live":""); });
+  });
+  $$("#prog i").forEach(b=>{ const li=+b.dataset.l, l=R.lines[li]; b.className = li===R.li && R.phase!=="end" ? "cur" : l.some(c=>c.han&&c.state!=="todo") && l.every(c=>!c.han||c.state!=="todo") ? "done" : ""; });
+  const rc=$("#rc"); if(rc) rc.textContent=R.coins;
+}
+function scrollToLine(){
+  const row = $(`.ln[data-l="${R.li}"]`); if(!row) return;
+  const r=row.getBoundingClientRect(); const dockH = ($("#dock")||{offsetHeight:120}).offsetHeight;
+  if(r.bottom > innerHeight-dockH-10 || r.top < 0) row.scrollIntoView({block:"center",behavior:REDUCED?"auto":"smooth"});
+}
+function startClock(){ if(R.started) return; R.started=true; clearInterval(timer); timer=setInterval(()=>{ if(!R||R.phase==="end") return; R.secs++; const t=$("#tm"); if(t) t.textContent=fmtTime(R.secs); },1000); }
+
+/* ---- the dock: what the big button does right now ---- */
+function renderDock(){
+  const box = $("#dockIn"); if(!box) return;
+  const l = curLine(); const misses = l ? l.filter(c=>c.han && c.state==="miss").length : 0;
+  let main="", aux="", tip="";
+  const hearBtn = `<button class="aux" id="hearLine">${icon("i-ear")}听这一行</button>`;
+  const modeBtn = `<button class="aux" id="modeBtn" title="Switch checking mode">${S.mode==="voice"?icon("i-hand")+"大人检查":icon("i-mic")+"用话筒"}</button>`;
+  if(R.phase==="judging"){
+    main = `<button class="mic go" id="mainBtn" disabled>${icon("i-check")}好！</button>`;
+  } else if(R.phase==="listening"){
+    main = `<button class="mic listening" id="mainBtn"><span class="waves"><i></i><i></i><i></i><i></i></span>我在听…</button>`;
+    tip = `<p class="tip">Read the purple line. Tap the button when you finish.</p>`;
+  } else if(R.phase==="retry"){
+    main = S.mode==="voice" ? `<button class="mic" id="mainBtn">${icon("i-mic")}再读一次</button>` : `<button class="mic go" id="mainBtn">${icon("i-check")}这次读对了</button>`;
+    aux = `<button class="aux" id="skipBtn">${icon("i-skip")}下一行</button>`;
+    tip = S.mode==="voice" ? `<p class="tip">Tap an orange character to hear it, then read the line again. <button class="btn ghost small" id="okAll">Grown-up: it was right</button></p>`
+                           : `<p class="tip">Tap an orange character to hear it. Liam reads it again.</p>`;
+  } else if(S.mode==="voice"){
+    main = `<button class="mic" id="mainBtn">${icon("i-mic")}我来读！</button>`;
+  } else {
+    main = `<button class="mic go" id="mainBtn">${icon("i-check")}这一行读完了</button>`;
+    tip = `<p class="tip">Grown-up: tap any character Liam missed so it turns orange, then tap ✓.</p>`;
+  }
+  box.innerHTML = `${hearBtn}${main}${aux||modeBtn}${tip}`;
+  $("#mainBtn").onclick = onMain;
+  $("#hearLine").onclick = hearLine;
+  const mb=$("#modeBtn"); if(mb) mb.onclick = ()=>{ setMode(S.mode==="voice"?"tap":"voice"); };
+  const sk=$("#skipBtn"); if(sk) sk.onclick = skipLine;
+  const ok=$("#okAll"); if(ok) ok.onclick = ()=>commitRetry(true);
+}
+function setMode(m){
+  if(m==="voice" && !SR){ toast("This browser can't listen to speech. On iPad, open the game in Safari."); m="tap"; }
+  stopListening(true); S.mode=m; save();
+  if(R && R.phase!=="end"){ if(R.phase==="listening") R.phase="ready"; renderDock();
+    dragonSays(m==="voice"?"我会听你读！":"大人来帮忙！", m==="voice"?"Tap 🎤 and read the line.":"A grown-up checks each line."); }
+}
+function onMain(){
+  if(!R || R.phase==="judging" || R.phase==="end") return; hush(); clearSpeaking();
+  if(R.phase==="listening"){ finishListening(); return; }
+  startClock();
+  if(S.mode==="voice"){ startListening(); return; }
+  // tap mode
+  if(R.phase==="retry") commitRetry(true); else commitTap();
+}
+function onCharTap(e){
+  const b = e.target.closest(".ch[data-i]"); if(!b) return;
+  const li=+b.dataset.l, i=+b.dataset.i; const l=R.lines[li]; const ch=l[i];
+  if(S.mode==="tap" && li===R.li && R.phase==="ready" && ch.state==="todo"){ ch.flag=!ch.flag; paint(); return; }
+  stopListening(true); if(R.phase==="listening"){ R.phase="ready"; renderDock(); }
+  b.classList.add("saying"); setTimeout(()=>b.classList.remove("saying"),900);
+  sayChar(l, i);
+}
+function hearLine(){
+  stopListening(true); if(R.phase==="listening"){ R.phase="ready"; renderDock(); }
+  hush(); const l=curLine(); if(!l) return;
+  const row=$(`.ln[data-l="${R.li}"]`);
+  say(l.map(c=>c.c).join(""), {rate:.75, onstart:()=>row&&row.classList.add("speak"), onend:()=>row&&row.classList.remove("speak")}); watchVoice();
+}
+let hearing=false;
+function clearSpeaking(){ hearing=false; $$(".ln.speak").forEach(r=>r.classList.remove("speak")); const h=$("#hearAll span"); if(h) h.textContent="先听一听"; $("#hearAll")&&$("#hearAll").classList.remove("on"); }
+function hearAll(){
+  if(hearing){ hush(); clearSpeaking(); return; }
+  stopListening(true); if(R.phase==="listening"){ R.phase="ready"; renderDock(); }
+  hush(); hearing=true; $("#hearAll span").textContent="停"; $("#hearAll").classList.add("on");
+  const idxs = R.lines.map((l,i)=>l?i:-1).filter(i=>i>=0);
+  // queue every line now, inside the tap, so iPad lets the whole page play
+  say(R.p.title, {rate:.75});
+  idxs.forEach((li,k)=>{
+    const row=$(`.ln[data-l="${li}"]`);
+    say(R.lines[li].map(c=>c.c).join(""), {rate:.75,
+      onstart:()=>{ if(!hearing) return; $$(".ln.speak").forEach(r=>r.classList.remove("speak")); row&&row.classList.add("speak"); row&&!REDUCED&&row.scrollIntoView({block:"center",behavior:"smooth"}); },
+      onend:()=>{ row&&row.classList.remove("speak"); if(k===idxs.length-1){ clearSpeaking(); setTimeout(scrollToLine,300); } }});
+  });
+  watchVoice();
+}
+
+/* ---- listening with speech recognition ---- */
+let rec=null, recWatch=null;
+function startListening(){
+  if(!SR){ setMode("tap"); return; }
+  const l = curLine(); const han = l.filter(c=>c.han);
+  const matched = new Set(); let heardAny=false, last=Date.now(); const t0=Date.now();
+  try{ rec = new SR(); }catch(e){ setMode("tap"); return; }
+  rec.lang="zh-CN"; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=3;
+  R.phase="listening"; R.live=matched; renderDock();
+  dragonSays("我在听…", "Read the purple line out loud.");
+  rec.onresult = e => {
+    let prefix=""; const alts=[];
+    for(let i=0;i<e.results.length;i++){
+      const res=e.results[i];
+      if(i===e.results.length-1){ for(let k=0;k<res.length;k++) alts.push(prefix+res[k].transcript); }
+      prefix += res[0].transcript;
+    }
+    alts.forEach(t=> align(han, heardChars(t)).forEach(i=>matched.add(i)));
+    heardAny = true; last = Date.now();
+    han.forEach((ch,i)=>{ if(matched.has(i) && !ch.live && ch.state!=="ok" && ch.state!=="fixed"){ ch.live=true; sfx.pop(); } });
+    paint();
+    if(han.every((ch,i)=>matched.has(i) || ch.state==="ok" || ch.state==="fixed")) setTimeout(finishListening, 350);
+  };
+  rec.onerror = e => {
+    if(["not-allowed","service-not-allowed","audio-capture"].includes(e.error)){
+      R.phase="ready"; stopListening(true); setMode("tap");
+      toast("The microphone isn't available here, so a grown-up checks instead. On iPad: open in Safari and allow the microphone.", 7000);
+    }
+  };
+  rec.onend = () => { if(R && R.phase==="listening") finishListening(); };
+  try{ rec.start(); }catch(e){ R.phase="ready"; setMode("tap"); return; }
+  clearInterval(recWatch);
+  recWatch = setInterval(()=>{
+    if(!R || R.phase!=="listening"){ clearInterval(recWatch); return; }
+    const now=Date.now();
+    if(heardAny && now-last > 2600) finishListening();
+    else if(!heardAny && now-t0 > 9000) finishListening();
+  }, 300);
+}
+function stopListening(abort){
+  clearInterval(recWatch);
+  if(rec){ const r=rec; rec=null; r.onresult=r.onend=r.onerror=null; try{ abort ? r.abort() : r.stop(); }catch(e){} }
+  if(R) R.lines.forEach(l=>l&&l.forEach(c=>c.live=false));
+}
+function finishListening(){
+  if(!R || R.phase!=="listening") return;
+  const l = curLine(); const han = l.filter(c=>c.han);
+  const matched = R.live || new Set();
+  R.phase = "judging";
+  stopListening(false);
+  if(matched.size===0){
+    R.phase = han.some(c=>c.state==="miss") ? "retry" : "ready"; renderDock(); paint();
+    animDragon("think",1000);
+    dragonSays("我没听到，再读一次？", "I didn't hear you. Tap and read a bit louder."); sfx.oops();
+    return;
+  }
+  // a final 儿 after a read character counts (鱼儿 often sounds like one syllable)
+  han.forEach((ch,i)=>{ if(ch.c==="儿" && i>0 && matched.has(i-1)) matched.add(i); });
+  if(han.some(c=>c.state==="miss")) commitRetry(false, matched); else commitFirst(han.map((c,i)=>matched.has(i)));
+}
+function commitTap(){
+  if(R.phase!=="ready") return; R.phase="judging";
+  const l=curLine(); const han=l.filter(c=>c.han);
+  const right = han.map(c=>!c.flag); han.forEach(c=>c.flag=false);
+  commitFirst(right);
+}
+/* first reading of a line */
+function commitFirst(rightArr){
+  R.phase="judging"; renderDock();
+  const l=curLine(); const han=l.filter(c=>c.han);
+  const won=[];
+  han.forEach((ch,i)=>{ if(ch.state!=="todo") return; if(rightArr[i]){ ch.state="ok"; won.push(ch); } else ch.state="miss"; });
+  const misses = han.filter(c=>c.state==="miss").length;
+  R.coins += won.length*2;
+  paint(); flyPearls(won, 2);
+  if(!misses){
+    R.streak++; R.best=Math.max(R.best,R.streak);
+    const bonus = 3 + (R.streak>=2?2:0);
+    R.coins += bonus;
+    setTimeout(()=>{
+      if(R.streak>=2){ animDragon("fire",1100); sfx.fire(); burst(`连读 ${R.streak} 行！🔥`); dragonSays("呼——我会喷火了！", `Perfect line! +${bonus} pearls`); }
+      else { animDragon("happy",1200); sfx.good(); dragonSays(["太棒了！","好厉害！","全对了！","真好听！"][Math.floor(Math.random()*4)], `Perfect line! +${bonus} pearls`); }
+      paint();
+    }, 450 + won.length*40);
+    setTimeout(nextLine, 1500 + won.length*40);
+  } else {
+    R.streak=0; R.phase="retry";
+    setTimeout(()=>{ animDragon("think",1000); sfx.oops(); dragonSays(won.length? `读对了 ${won.length} 个！橙色的再试试。` : "我们再试一次！", "Tap an orange character to hear it, then read again."); renderDock(); }, 450 + won.length*40);
+    renderDock();
+  }
+}
+/* re-reading a line that has orange characters */
+function commitRetry(allRight, matched){
+  R.phase="judging"; renderDock();
+  const l=curLine(); const han=l.filter(c=>c.han);
+  const won=[];
+  han.forEach((ch,i)=>{ if(ch.state==="miss" && (allRight || (matched && matched.has(i)))){ ch.state="fixed"; won.push(ch); } });
+  R.coins += won.length;
+  paint(); flyPearls(won, 1);
+  const left = han.filter(c=>c.state==="miss").length;
+  if(!left){ setTimeout(()=>{ animDragon("happy",1200); sfx.good(); dragonSays("你学会了！", "Got them! On to the next line."); }, 400); setTimeout(nextLine, 1500); }
+  else { R.phase="retry"; renderDock(); setTimeout(()=>{ dragonSays(won.length?"又对了几个！还差一点。":"没关系，再听一听。", "Tap orange to hear, or go to the next line."); },400); }
+}
+function skipLine(){
+  stopListening(true);
+  const l=curLine(); l.forEach(c=>{ if(c.han && c.state==="miss") c.state="skip"; });
+  nextLine();
+}
+function nextLine(){
+  if(!R) return;
+  let n = R.li+1; while(n<R.lines.length && !R.lines[n]) n++;
+  if(n>=R.lines.length){ finishPage(); return; }
+  R.li=n; R.phase="ready"; paint(); renderDock(); scrollToLine();
+  if(S.mode==="voice") dragonSays(["下一行！","继续读！","加油！"][Math.floor(Math.random()*3)], "Tap 🎤 and read the next line.");
+}
+function stopAll(){ stopListening(true); hush(); hearing=false; }
+
+/* ---- pearls flying into the dragon ---- */
+function flyPearls(chars, each){
+  const d = $("#scene .dragon .mouth") || $("#dwrap"); if(!d || !chars.length) return;
+  const m = d.getBoundingClientRect(); const tx = m.left+m.width/2, ty = m.top+m.height/2;
+  chars.forEach((ch,k)=>{
+    const el = findCharEl(ch); if(!el) return;
+    const r = el.getBoundingClientRect(); const sx=r.left+r.width/2, sy=r.top+r.height/2;
+    const p = document.createElement("div"); p.className="pearl"; p.style.left=sx+"px"; p.style.top=sy+"px"; document.body.appendChild(p);
+    const dx=tx-sx, dy=ty-sy;
+    if(REDUCED || !p.animate){ p.remove(); return; }
+    const a = p.animate([
+      {transform:"translate(0,0) scale(.3)",opacity:0},
+      {transform:"translate(0,-14px) scale(1.15)",opacity:1,offset:.15},
+      {transform:`translate(${dx*.45}px,${dy*.45-90}px) scale(1)`,opacity:1,offset:.55},
+      {transform:`translate(${dx}px,${dy}px) scale(.35)`,opacity:.9}
+    ],{duration:750,delay:k*70,easing:"cubic-bezier(.45,.05,.55,.95)",fill:"backwards"});
+    a.onfinish = ()=>{ p.remove(); sfx.chomp(); animDragon("chomp",700); };
+  });
+  const plus = document.createElement("div"); plus.className="plus"; plus.textContent=`+${chars.length*each}`;
+  plus.style.left=(tx-16)+"px"; plus.style.top=(ty-60)+"px"; document.body.appendChild(plus);
+  if(!REDUCED && plus.animate) plus.animate([{transform:"translateY(10px)",opacity:0},{transform:"translateY(0)",opacity:1,offset:.3},{transform:"translateY(-30px)",opacity:0}],{duration:1200,delay:chars.length*70+500,fill:"both"}).onfinish=()=>plus.remove();
+  else setTimeout(()=>plus.remove(),1200);
+}
+function findCharEl(ch){
+  for(let li=0; li<R.lines.length; li++){ const l=R.lines[li]; if(!l) continue; const i=l.indexOf(ch); if(i>=0) return $(`.ch[data-l="${li}"][data-i="${i}"]`); }
+  return null;
+}
+function burst(text){ const b=document.createElement("div"); b.className="burst"; b.textContent=text; document.body.appendChild(b); setTimeout(()=>b.remove(),1500); }
+function confetti(){
+  if(REDUCED) return;
+  const c=document.createElement("canvas"); c.className="confetti"; c.width=innerWidth; c.height=innerHeight; document.body.appendChild(c);
+  const g=c.getContext("2d"); const cols=["#FFC229","#2F9E55","#7B5CF0","#F2643D","#5BA8F5","#F58BB8"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,vr:(Math.random()-.5)*.3,w:6+Math.random()*6,col:cols[Math.floor(Math.random()*cols.length)]}));
+  let t=0; (function f(){ g.clearRect(0,0,c.width,c.height); ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.04; p.r+=p.vr; g.save(); g.translate(p.x,p.y); g.rotate(p.r); g.fillStyle=p.col; g.fillRect(-p.w/2,-p.w/4,p.w,p.w/2); g.restore(); }); if(++t<200) requestAnimationFrame(f); else c.remove(); })();
+}
+
+/* ===================== FINISH ===================== */
+function finishPage(){
+  R.phase="end"; clearInterval(timer); stopAll(); paint();
+  const all = R.lines.flatMap(l=>l?l.filter(c=>c.han):[]);
+  const total=all.length, ok=all.filter(c=>c.state==="ok").length, fixed=all.filter(c=>c.state==="fixed").length;
+  const acc = ok/total, stars = acc>=.9?3:acc>=.7?2:1;
+  const pageBonus = stars*5; R.coins += pageBonus;
+  const pr = S.progress[R.p.id] || {plays:0};
+  const firstTime = !pr.stars;
+  const newTime = pr.bestTime==null || R.secs<pr.bestTime, newOk = pr.bestCorrect==null || ok>pr.bestCorrect;
+  pr.plays=(pr.plays||0)+1; pr.stars=Math.max(pr.stars||0,stars); if(newTime) pr.bestTime=R.secs; if(newOk) pr.bestCorrect=ok;
+  S.progress[R.p.id]=pr; S.coins += R.coins; save();
+  $("#bm").textContent=Math.floor(R.secs/60); $("#bs").textContent=R.secs%60; $("#bn").textContent=ok;
+  $("#layer").innerHTML="";
+  sfx.win(); confetti(); animDragon("fire",1100);
+  const nxt = nextIsle();
+  const story = !nxt ? "豆豆回到月亮山了！谢谢你，Liam！" : firstTime ? `豆豆吃饱了珍珠，飞向 ${ISLES[nxt].name}！` : "豆豆又变强了一点！";
+  const storyEn = !nxt ? "Doudou is home at Moon Mountain. Thank you, Liam!" : firstTime ? `Doudou is full of pearls and flies on to ${ISLES[nxt].name}!` : "Doudou got a little stronger!";
+  const missed = [...new Set(all.filter(c=>c.state!=="ok").map(c=>c.c))].join("");
+  setTimeout(()=>{
+    $("#layer").innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="Page finished"><div class="sheet">
+      <div style="width:120px;margin:0 auto">${dragonSVG("happy")}</div>
+      <h3>${stars===3?"太棒了！":stars===2?"真不错！":"加油！"}</h3>
+      <div class="bigstars">${starsSVG(stars)}</div>
+      <div class="storyline">${esc(story)}<div class="small">${esc(storyEn)}</div></div>
+      <div class="stats">
+        <div class="stat"><b>${fmtTime(R.secs)}</b><span>时间${pr.plays>1&&newTime?" · 新纪录!":""}</span></div>
+        <div class="stat"><b>${ok}/${total}</b><span>一次读对${pr.plays>1&&newOk?" · 新纪录!":""}</span></div>
+        <div class="stat"><b>+${R.coins}</b><span>珍珠</span></div>
+      </div>
+      <p class="small">我用 ${Math.floor(R.secs/60)} 分 ${R.secs%60} 秒读完。我读对了 ${ok} 个字。${fixed?` (${fixed} more on the second try.)`:""}${R.best>=2?` Best run: ${R.best} perfect lines in a row.`:""}</p>
+      ${R.p.riddle?`<p style="margin:0;font-family:var(--f-cn-display);font-size:21px">${esc(R.p.riddle)} <button class="btn ghost small" id="ansBtn">看答案</button> <span id="ans" hidden>${esc(R.p.answer)}</span></p>`:""}
+      ${missed?`<div><p class="small">Tap to hear the ones to practise:</p><button class="missed" id="missedBtn">${esc(missed)}</button></div>`:""}
+      <div class="row">
+        <button class="btn" id="mapBtn">${nxt&&firstTime?"跟豆豆飞过去 →":"回地图"}</button>
+        <button class="btn ghost" id="againBtn">再读一次</button>
+        <button class="btn purple" id="shopBtn2">🛍️ 商店</button>
+      </div>
+    </div></div>`;
+    $("#mapBtn").onclick = renderMap;
+    $("#againBtn").onclick = ()=>openPage(R.p.id);
+    $("#shopBtn2").onclick = openShop;
+    const ab=$("#ansBtn"); if(ab) ab.onclick=()=>{ $("#ans").hidden=false; ab.hidden=true; say(R.p.answer); };
+    const mb=$("#missedBtn"); if(mb) mb.onclick=()=>{ say([...missed].join("，"),{rate:.65}); watchVoice(); };
+  }, REDUCED?100:900);
+}
+
+/* ===================== SHOP ===================== */
+function itemPreview(it){
+  const save1 = S.wear; const tmp = Object.assign({}, S.wear); tmp[it.slot] = it.id; S.wear = tmp;
+  const svg = dragonSVG(); S.wear = save1; return svg;
+}
+function openShop(){
+  const cards = ITEMS.map(it=>{
+    const own = S.owned.includes(it.id), worn = S.wear[it.slot]===it.id;
+    const act = worn ? `<button class="btn ghost small" data-off="${it.id}">脱下</button>`
+      : own ? `<button class="btn small" data-on="${it.id}">穿上</button>`
+      : `<button class="btn purple small" data-buy="${it.id}" ${S.coins<it.price?"disabled":""}>${icon("i-pearl").replace("<svg","<svg style=\"width:18px;height:18px\"")} ${it.price}</button>`;
+    return `<div class="item ${worn?"worn":""}">${itemPreview(it)}<span class="nm">${esc(it.name)}</span>${act}</div>`;
+  }).join("");
+  $("#layer").innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="Dragon shop"><div class="sheet" style="width:min(640px,100%)">
+    <h3>龙龙商店</h3>
+    <p class="small">You have <b>${S.coins}</b> pearls. Read more pages to earn more.</p>
+    <div class="shop" id="shopGrid">${cards}</div>
+    <div class="row"><button class="btn ghost" id="closeShop">好了</button></div>
+  </div></div>`;
+  $("#closeShop").onclick = ()=>{ if(R && R.phase!=="end" && $("#app .scene")){ $("#layer").innerHTML=""; renderDockLayer(); } else renderMap(); };
+  $("#shopGrid").onclick = e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.buy){ const it=ITEMS.find(x=>x.id===b.dataset.buy); if(S.coins<it.price) return; S.coins-=it.price; S.owned.push(it.id); S.wear[it.slot]=it.id; sfx.buy(); save(); openShop(); confetti(); }
+    else if(b.dataset.on){ const it=ITEMS.find(x=>x.id===b.dataset.on); S.wear[it.slot]=it.id; save(); openShop(); }
+    else if(b.dataset.off){ const it=ITEMS.find(x=>x.id===b.dataset.off); delete S.wear[it.slot]; save(); openShop(); }
+  };
+}
+function renderDockLayer(){ $("#layer").innerHTML = `<div class="dock" id="dock"><div class="dock-in" id="dockIn"></div></div>`; renderDock(); }
+
+/* ===================== SETTINGS ===================== */
+function openSettings(){
+  $("#layer").innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="Settings"><div class="sheet" style="text-align:left">
+    <h3 style="text-align:center">设置 · Settings</h3>
+    <div class="opt" role="radiogroup" aria-label="How reading is checked">
+      <label><input type="radio" name="mode" value="voice" ${S.mode==="voice"?"checked":""} ${SR?"":"disabled"}><span><b>🎤 The iPad listens</b><span class="small">Liam reads each line out loud and the game checks it. ${SR?"":"Not available in this browser. Open the game in Safari."}</span></span></label>
+      <label><input type="radio" name="mode" value="tap" ${S.mode==="tap"?"checked":""}><span><b>✋ A grown-up checks</b><span class="small">After each line, tap any character Liam missed, then tap ✓.</span></span></label>
+    </div>
+    <div class="row"><button class="btn ghost small" id="testVoice">${icon("i-ear").replace("<svg","<svg style=\"width:18px;height:18px\"")} Test the voice</button></div>
+    <div class="help"><b>No sound or no listening on iPad?</b>
+      <ol>
+        <li>Turn off silent mode and turn the volume up.</li>
+        <li>Chinese voice: Settings → Accessibility → Spoken Content → Voices → Chinese (China mainland). Download a voice such as Tingting.</li>
+        <li>Listening: Settings → General → Keyboard → turn on Enable Dictation, and add the Chinese (Simplified) keyboard.</li>
+        <li>When Safari asks to use the microphone, tap Allow.</li>
+      </ol>
+    </div>
+    <div id="resetZone" style="text-align:center"><button class="btn ghost small" id="resetBtn">Start the journey again</button></div>
+    <div class="row"><button class="btn" id="closeSet">好了</button></div>
+  </div></div>`;
+  $$('input[name="mode"]').forEach(r=>r.onchange=()=>{ S.mode=r.value; save(); });
+  $("#testVoice").onclick = ()=>{ TTS.warned=false; say("你好，Liam！我是豆豆。",{rate:.8}); watchVoice(); };
+  $("#closeSet").onclick = renderMap;
+  $("#resetBtn").onclick = ()=>{
+    $("#resetZone").innerHTML = `<div class="help" style="text-align:center"><b>Clear all stars, pearls and shop items?</b><div class="row" style="margin-top:8px"><button class="btn orange small" id="resetYes">Clear everything</button><button class="btn ghost small" id="resetNo">Keep</button></div></div>`;
+    $("#resetYes").onclick = ()=>{ const m=S.mode; S=fresh(); S.mode=m; save(); renderMap(); };
+    $("#resetNo").onclick = openSettings;
+  };
+}
+
+/* ===================== KEYBOARD (for a grown-up with a keyboard) ===================== */
+document.addEventListener("keydown", e=>{
+  if(!R || R.phase==="end" || !$("#mainBtn")) return;
+  if(e.target.matches("input,textarea,select")) return;
+  if(e.key===" "||e.key==="Enter"){ e.preventDefault(); onMain(); }
+  else if(e.key==="ArrowRight" && R.phase==="retry"){ e.preventDefault(); skipLine(); }
+});
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden){ stopListening(true); hush(); if(R && R.phase==="listening"){ R.phase="ready"; renderDock(); } } });
+
+window.__wohuidu = { align, heardChars, buildLines, get R(){return R;}, get S(){return S;} };
+renderMap();
+})();
+</script>
+
+</body></html>
